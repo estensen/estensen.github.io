@@ -1,0 +1,9 @@
+html {
+  font-family: 'Helvetica Neue', 'Helvetica', 'sans-serif';
+}
+
+#container {
+  margin: 10% auto;
+  width: 50%;
+  text-align: left;
+}

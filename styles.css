@@ -20,3 +20,9 @@ p#title {
   font-style: italic;
   font-weight: 250
 }
+
+.list {
+  padding-left: 0;
+  list-style-position: inside;
+}
+

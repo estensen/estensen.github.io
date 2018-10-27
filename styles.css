@@ -2,6 +2,10 @@ html {
   font-family: 'Helvetica Neue', 'Helvetica', 'sans-serif';
 }
 
+body {
+  background-color: #4ABCAC;
+}
+
 #container {
   margin: 10% auto;
   width: 50%;
@@ -10,19 +14,42 @@ html {
 
 h1 {
   font-size: 2.5rem;
+  color: white;
+}
+
+h2 {
+  color: white;
 }
 
 p {
   font-size: 1.6rem;
+  color: white;
 }
 
 p#title {
   font-style: italic;
   font-weight: 250
+  color: white;
+}
+
+a {
+  text-decoration: none;
+}
+
+a, li {
+  color: white;
 }
 
 .list {
   padding-left: 0;
   list-style-position: inside;
+}
+
+.list li:hover {
+}
+
+.list a:hover {
+  color: black;
+  background-color: #DFDCE3;
 }
 

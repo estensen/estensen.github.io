@@ -1,0 +1,26 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Middleware - Brain Dump</title><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=referrer content="no-referrer"><meta name=description content><meta property="og:site_name" content="Brain Dump"><meta property="og:locale" content="en_US"><meta property="og:type" content="article"><meta property="og:url" content="https://estensen.github.io/posts/middleware/"><meta property="og:title" content="Middleware"><meta property="og:image" content="https://estensen.github.io/"><meta property="og:description" content><meta name=twitter:card content="summary_large_image"><meta name=twitter:title content="Middleware"><meta name=twitter:description content><meta name=twitter:image content="https://estensen.github.io/"><link rel=canonical href=https://estensen.github.io/posts/middleware/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin=anonymous><link rel=stylesheet href=https://estensen.github.io/css/custom.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github-gist.min.css integrity="sha512-od7JLoOTxM8w/HSKGzP9Kexc20K9p/M2zxSWsd7H1e4Ctf+8SQFtCWEZnW5u6ul5ehSECa5QmOk9ju2nQMmlVA==" crossorigin=anonymous><link rel="shortcut icon" href=https://estensen.github.io/images/favicon.png><link href=https://estensen.github.io/index.xml rel=alternate type=application/rss+xml title="Brain Dump"></head><body><div class="mt-xl header"><div class=container><div class="row justify-content-center"><div class=col-auto><a href=https://estensen.github.io/><h1 class=name>Brain Dump</h1></a></div></div><div class="row justify-content-center"><ul class="nav nav-primary"><li class=nav-item><a class=nav-link href=/>Home</a></li><li class=nav-item><a class=nav-link href=/about/>About</a></li><li class=nav-item><a class=nav-link href=https://github.com/estensen>GitHub</a></li></ul></div></div></div><div class=content><div class=container><div class="row justify-content-center"><div class="col-sm-12 col-lg-8"><h1 class="mx-0 mx-md-4">Middleware</h1><div class=markdown><p>Some functionality is shared between handlers. Authentication, logging and rate limiting are some that comes to mind. Wouldn&rsquo;t it be nice to not have to add that functionality to each new handler? With middlewares you can! Middlewares intercept an HTTP request and enables one to do stuff before the original handler function is excecuted.</p><p>By satisifying the <code>http.Handler</code> interface we can chain as many middlewares as we&rsquo;d like.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#00f>package</span> main
+
+<span style=color:#00f>import</span> (
+	<span style=color:#a31515>&#34;fmt&#34;</span>
+	<span style=color:#a31515>&#34;log&#34;</span>
+	<span style=color:#a31515>&#34;net/http&#34;</span>
+	<span style=color:#a31515>&#34;time&#34;</span>
+)
+
+<span style=color:#00f>func</span> loggerMiddleware(next http.Handler) http.Handler {
+	<span style=color:#00f>return</span> http.HandlerFunc(<span style=color:#00f>func</span>(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf(<span style=color:#a31515>&#34;%s %s %s\n&#34;</span>, time.Now(), r.Method, r.URL)
+		next.ServeHTTP(w, r)
+	})
+}
+
+<span style=color:#00f>func</span> answerHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, <span style=color:#a31515>&#34;42&#34;</span>)
+}
+
+<span style=color:#00f>func</span> main() {
+	mux := http.NewServeMux()
+	mux.Handle(<span style=color:#a31515>&#34;/answer&#34;</span>, loggerMiddleware(http.HandlerFunc(answerHandler)))
+	log.Fatal(http.ListenAndServe(<span style=color:#a31515>&#34;:8080&#34;</span>, mux))
+}
+</code></pre></div></div></div></div></div></div><section id=comments><div class="py-3 content"><div class=container><div class="row justify-content-center"><div class="col-sm-12 col-lg-8"><div class=comments><script src=https://utteranc.es/client.js repo issue-term=pathname label=comment theme=github-light crossorigin=anonymous async></script></div></div></div></div></div></section><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/go.min.js defer></script><script>window.addEventListener('load',function(){hljs.initHighlighting()},!0)</script><script src=/js/math-code.js></script><script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script></body></html>

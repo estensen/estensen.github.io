@@ -1,4 +1,4 @@
-baseURL = "https://estensen.github.io"
+baseURL = "https://estensen.github.io/"
 languageCode = "en-us"
 title = "Brain Dump"
 theme = "hugo-tanka"

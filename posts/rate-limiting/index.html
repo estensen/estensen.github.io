@@ -1,0 +1,29 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>Rate Limiting - Brain Dump</title><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=referrer content="no-referrer"><meta name=description content><meta property="og:site_name" content="Brain Dump"><meta property="og:locale" content="en_US"><meta property="og:type" content="article"><meta property="og:url" content="https://estensen.github.io/posts/rate-limiting/"><meta property="og:title" content="Rate Limiting"><meta property="og:image" content="https://estensen.github.io/"><meta property="og:description" content><meta name=twitter:card content="summary_large_image"><meta name=twitter:title content="Rate Limiting"><meta name=twitter:description content><meta name=twitter:image content="https://estensen.github.io/"><link rel=canonical href=https://estensen.github.io/posts/rate-limiting/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin=anonymous><link rel=stylesheet href=https://estensen.github.io/css/custom.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github-gist.min.css integrity="sha512-od7JLoOTxM8w/HSKGzP9Kexc20K9p/M2zxSWsd7H1e4Ctf+8SQFtCWEZnW5u6ul5ehSECa5QmOk9ju2nQMmlVA==" crossorigin=anonymous><link rel="shortcut icon" href=https://estensen.github.io/images/favicon.png><link href=https://estensen.github.io/index.xml rel=alternate type=application/rss+xml title="Brain Dump"></head><body><div class="mt-xl header"><div class=container><div class="row justify-content-center"><div class=col-auto><a href=https://estensen.github.io/><h1 class=name>Brain Dump</h1></a></div></div><div class="row justify-content-center"><ul class="nav nav-primary"><li class=nav-item><a class=nav-link href=/>Home</a></li><li class=nav-item><a class=nav-link href=/about/>About</a></li><li class=nav-item><a class=nav-link href=https://github.com/estensen>GitHub</a></li></ul></div></div></div><div class=content><div class=container><div class="row justify-content-center"><div class="col-sm-12 col-lg-8"><h1 class="mx-0 mx-md-4">Rate Limiting</h1><div class=markdown><p>Sometimes clients use your API in a way you didn&rsquo;t intend. Maybe they send requests more often than you&rsquo;d like and degrade the experience for other users. Rate-limiting is a way of limiting how many requests a user can create.</p><p>Using a Go middleware we can intercept requests and check if they are allowed before passing it on to the handlers.</p><h2 id=time-bucketed>Time Bucketed</h2><p>The simplest way rate rate limiting is to store remaining limit that will expire after a certain amount of time.</p><p>Some pseudocode:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>LIMIT &lt;- 100
+PERIOD &lt;- 1 hour
+
+<span style=color:#00f>if</span> UserID is not in Store
+	Store.UserID.limit &lt;- LIMIT
+	Store.UserID.limit--
+	Store.UserID.reset &lt;- now + PERIOD
+	process_request()
+<span style=color:#00f>else</span>
+	<span style=color:#00f>if</span> now &gt; Store.UserID.reset
+		Store.UserID.limit &lt;- LIMIT - 1
+		Store.UserID.reset &lt;- now + PERIOD
+	<span style=color:#00f>else</span>
+		Store.UserID.limit--
+		<span style=color:#00f>if</span> Store.UserID.limit = 0
+			rate_limit()
+</code></pre></div><p>Using a store with TTL would simplify the code.</p><p>The major downside of this approach is that a client can exhaust their rate limit very fast. In this example, the client can do a 100 requests and then they have to wait an hour to do another requests. We would like something that is more evenly spread out.</p><h2 id=leaky-bucket>Leaky Bucket</h2><p>Leaky bucket is an algorithm that uses the analogy of how a bucket with a constant leak will overflow if the average rate of which water is dripping into the bucket is greater that what leaks out. This creates a smoothing effect allowing client request rate to be specified as an average rate and to be reset faster. The bucket also allows bursts. We can set a strict request rate like 5 reqs/min, but also allow for 3 requests arriving simultaneously.</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt>user       *       drip
+reqs               into
+           *       bucket
+           *
+         |   |
+burst    |   |     bucket size
+         | * |
+          \*/
+
+           *       constant
+limit              drip
+           *       out
+</code></pre></div></div></div></div></div></div><section id=comments><div class="py-3 content"><div class=container><div class="row justify-content-center"><div class="col-sm-12 col-lg-8"><div class=comments><script src=https://utteranc.es/client.js repo issue-term=pathname label=comment theme=github-light crossorigin=anonymous async></script></div></div></div></div></div></section><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/go.min.js defer></script><script>window.addEventListener('load',function(){hljs.initHighlighting()},!0)</script><script src=/js/math-code.js></script><script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script></body></html>
